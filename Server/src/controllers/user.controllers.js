@@ -145,3 +145,29 @@ export async function refresh(req, res) {
     return res.status(500).json({ message: "Server Error" });
   }
 }
+
+export async function kycSubmit(req, res) {
+  try {
+    const userId = req.user.id;
+    const user = await userModel.findById(userId);
+    if (user.kyc.status === "verified" || user.kyc.status === "submitted") {
+      return res.status(400).json({ message: "Already verified or submitted" });
+    }
+    user.kyc.status="submitted";
+    await user.save();
+  } catch (err) {
+    return res.status(500).json({ message: "Server Error" })
+  }
+}
+
+export async function kycVerify(req,res){
+  try{
+    const userId=req.params.userId;
+    const user=await userModel.findById(userId);
+    user.kyc.status="verified";
+    await user.save();
+    return res.status(200).json({message:"Kyc submitted successfully",user});
+  }catch(err){
+    return res.status(500).json({message:"Server Error"})
+  }
+}

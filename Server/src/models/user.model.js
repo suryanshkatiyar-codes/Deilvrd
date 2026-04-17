@@ -14,7 +14,7 @@ const userSchema = new mongoose.Schema({
   password: {
     type: String,
     required: true,
-    select:false,
+    select: false,
   },
   role: {
     type: String,
@@ -23,8 +23,15 @@ const userSchema = new mongoose.Schema({
   },
   refreshToken: {
     type: String,
-    default:null,
-    select:false,
+    default: null,
+    select: false,
+  },
+  kyc: {
+    status: {
+      type: String,
+      default: "pending",
+      enum: ["pending", "submitted", "verified"],
+    },
   }
 }, { timestamps: true })
 
