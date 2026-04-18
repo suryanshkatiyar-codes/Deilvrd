@@ -3,7 +3,7 @@ import contractModel from "../models/contract.model.js";
 
 export async function generateContract(req, res) {
   try {
-    const { freelancerId, title, description, amount } = req.body;
+    const { freelancerId, title, description, amount, milestones } = req.body;
     const userId = req.user.id;
     const user = await userModel.findById(userId);
     if (user.kyc.status !== "verified") {
@@ -20,7 +20,21 @@ export async function generateContract(req, res) {
       amount,
     })
 
-    return res.status(201).json({ message: "New contract created successfully", newContract })
+    let createdMilestones = [];
+    if (milestones && milestones.length > 0) {
+      const milestoneData = milestones.map((m) => ({
+        contract: newContract._id,
+        client: userId,
+        freelancer: freelancerId,
+        title: m.title,
+        description: m.description,
+        amount: m.amount,
+        dueDate: m.dueDate,
+      }));
+      createdMilestones = await milestoneModel.insertMany(milestoneData);
+    }
+
+    return res.status(201).json({ message: "New contract created successfully", contract:newContract, milestones:createdMilestones });
   } catch (err) {
     return res.status(500).json({ message: "Sever error" });
   }
