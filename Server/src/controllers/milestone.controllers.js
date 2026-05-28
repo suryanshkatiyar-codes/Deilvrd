@@ -2,6 +2,7 @@ import milestoneModel from "../models/milestone.model.js";
 import upload from "../config/cloudinary.js"
 import { io } from "../../server.js";
 
+
 export async function fundMilestone(req, res) {
   try {
     const { milestoneId } = req.params;
@@ -117,6 +118,10 @@ export async function releaseMilestone(req, res) {
     }
     milestone.status = "released";
     await milestone.save();
+    const invoiceUrl = await generateInvoice(milestone);
+    milestone.invoiceUrl = invoiceUrl;
+    await milestone.save();
+
     io.to(milestone.client.toString()).emit("milestoneUpdate", {
       milestoneId: milestone._id,
       status: milestone.status,

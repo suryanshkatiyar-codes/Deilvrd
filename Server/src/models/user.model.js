@@ -21,10 +21,8 @@ const userSchema = new mongoose.Schema({
     default: "User",
     enum: ["Admin", "User", "Freelancer"],
   },
-  refreshToken: {
-    type: String,
-    default: null,
-    select: false,
+  refreshToken:{
+    type:String,
   },
   kyc: {
     status: {
