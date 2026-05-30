@@ -84,3 +84,34 @@ export async function resolveDispute(req, res) {
     return res.status(500).json({ message: "Server Error" });
   }
 }
+
+export async function submitEvidence(req, res) {
+  try {
+    const { disputeId } = req.params;
+    const { evidence } = req.body;
+    const dispute = await disputeModel.findById(disputeId);
+    if (!dispute) {
+      return res.status(404).json({ message: "Dispute does not exist" });
+    }
+    if (dispute.status === "resolved") {
+      return res.status(400).json({ message: "Evidence can be submitted only to open or underreviewd disputes" });
+    }
+    const contract=await contractModel.findById(dispute.contract);
+    const userId=req.user.id;
+    const isClient=contract.client.toString()===userId.toString();
+    const isFreelancer=contract.freelancer.toString()===userId.toString();
+    if(!isClient && !isFreelancer){
+      return res.status(403).json({message:"You are not part of this contract"});
+    }
+    if (isClient) {
+      dispute.clientEvidence = evidence;
+    }
+    else {
+      dispute.freelancerEvidence = evidence;
+    }
+    await dispute.save();
+    return res.status(200).json({ message: "Evidence submitted successfully" });
+  } catch (err) {
+    return res.status(500).json({ message: "Server Error" })
+  }
+}

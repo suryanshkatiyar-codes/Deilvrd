@@ -145,6 +145,19 @@ export async function refresh(req, res) {
   }
 }
 
+export async function logout(req, res) {
+  try {
+    const userId = req.user.id;
+    const user = await userModel.findById(userId);
+    user.refreshToken = null;
+    await user.save();
+    res.clearCookie("refreshToken")
+    return res.status(200).json({ message: "User logged out successfully" });
+  } catch (err) {
+    return res.status(400).json({ message: "Server error" });
+  }
+}
+
 export async function kycSubmit(req, res) {
   try {
     const userId = req.user.id;

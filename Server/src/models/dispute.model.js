@@ -4,17 +4,17 @@ const disputeSchema = new mongoose.Schema({
   milestone: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Milestones",
-    required:true,
+    required: true,
   },
   contract: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Contracts",
-    required:true,
+    required: true,
   },
   raisedBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Users",
-    required:true,
+    required: true,
   },
   status: {
     type: String,
@@ -28,13 +28,20 @@ const disputeSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "Users",
   },
-  releasePercentage:{
-    type:Number,
-    min:0,
-    max:100,
-  }
-},{timestamps:true})
+  releasePercentage: {
+    type: Number,
+    min: 0,
+    max: 100,
+  },
+  clientEvidence:
+  {
+    type: String
+  },
+  freelancerEvidence: {
+    type: String
+  },
+}, { timestamps: true })
 
-const disputeModel=mongoose.model("Disputes",disputeSchema);
+const disputeModel = mongoose.model("Disputes", disputeSchema);
 
 export default disputeModel;
