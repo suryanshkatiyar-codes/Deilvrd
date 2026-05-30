@@ -5,6 +5,6 @@ import { generateContract } from "../controllers/contract.controllers.js";
 
 const router=Router()
 
-router.post("generate-contract",protect,roleCheck("user"),generateContract);
+router.post("generate-contract",protect,roleCheck("Client"),generateContract);
 
 export default router;

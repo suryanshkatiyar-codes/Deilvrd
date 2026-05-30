@@ -9,7 +9,7 @@ router.post("/register", register);
 router.post("/login", login);
 router.get("/refresh", refresh)
 router.patch("/kyc-submit",protect,kycSubmit);
-router.patch("/kyc-verify/:userId",protect,roleCheck('admin'),kycVerify);
+router.patch("/kyc-verify/:userId",protect,roleCheck('Admin'),kycVerify);
 
 export default router;
 

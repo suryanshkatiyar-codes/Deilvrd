@@ -19,7 +19,7 @@ const userSchema = new mongoose.Schema({
   role: {
     type: String,
     default: "User",
-    enum: ["Admin", "User", "Freelancer"],
+    enum: ["Admin", "Client", "Freelancer"],
   },
   refreshToken:{
     type:String,
@@ -30,6 +30,10 @@ const userSchema = new mongoose.Schema({
       default: "pending",
       enum: ["pending", "submitted", "verified"],
     },
+  },
+  isBanned:{
+    type:Boolean,
+    default:false,
   }
 }, { timestamps: true })
 

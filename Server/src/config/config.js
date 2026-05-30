@@ -34,6 +34,10 @@ if(!process.env.RAZORPAY_KEY_SECRET){
   throw new Error("RAZORPAY_KEY_SECRET variable is not defined")
 }
 
+if(!process.env.RESEND_API_KEY){
+  throw new Error("RESEND_API_KEY variable is not defined")
+}
+
 const config={
   PORT:process.env.PORT,
   MONGO_URI:process.env.MONGO_URI,
@@ -44,6 +48,7 @@ const config={
   CLOUDINARY_API_SECRET:process.env.CLOUDINARY_API_SECRET,
   RAZORPAY_KEY_ID:process.env.RAZORPAY_KEY_ID,
   RAZORPAY_KEY_SECRET:process.env.RAZORPAY_KEY_SECRET,
+  RESEND_API_KEY:process.env.RESEND_API_KEY,
 }
 
 export default config;

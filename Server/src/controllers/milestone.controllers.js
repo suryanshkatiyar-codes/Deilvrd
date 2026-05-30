@@ -1,7 +1,7 @@
 import milestoneModel from "../models/milestone.model.js";
-import upload from "../config/cloudinary.js"
-import { io } from "../../server.js";
-
+import { generateInvoice } from "../utils/invoice.js";
+import contractModel from "../models/contract.model.js";
+import { sendEmail } from "../utils/email.js";
 
 export async function fundMilestone(req, res) {
   try {
@@ -11,13 +11,13 @@ export async function fundMilestone(req, res) {
       return res.status(400).json({ message: "Milestone does not exist" });
     }
     if (milestone.status !== "pending") {
-      return res.status(400).json({ message: "You can only approve pending milestones only" })
+      return res.status(400).json({ message: "You can only approve pending milestones only" });
     }
     milestone.status = "funded";
     await milestone.save();
     return res.status(200).json({ message: "Milestone funded successfully", milestone });
   } catch (err) {
-    return res.status(500).json({ message: "Server Error" })
+    return res.status(500).json({ message: "Server Error" });
   }
 }
 
@@ -29,7 +29,7 @@ export async function submitMilestone(req, res) {
       return res.status(400).json({ message: "Milestone does not exist" });
     }
     if (milestone.status !== "funded") {
-      return res.status(400).json({ message: "You can only submit funded milestones only" })
+      return res.status(400).json({ message: "You can only submit funded milestones only" });
     }
     milestone.status = "submitted";
     milestone.submittedAt = Date.now();
@@ -37,18 +37,9 @@ export async function submitMilestone(req, res) {
       milestone.deliverableUrl = req.file.path;
     }
     await milestone.save();
-    io.to(milestone.client.toString()).emit("milestoneUpdate", {
-      milestoneId: milestone._id,
-      status: milestone.status,
-    });
-
-    io.to(milestone.freelancer.toString()).emit("milestoneUpdate", {
-      milestoneId: milestone._id,
-      status: milestone.status,
-    });
     return res.status(200).json({ message: "Milestone submitted successfully", milestone });
   } catch (err) {
-    return res.status(500).json({ message: "Server Error" })
+    return res.status(500).json({ message: "Server Error" });
   }
 }
 
@@ -64,18 +55,9 @@ export async function approveMilestone(req, res) {
     }
     milestone.status = "approved";
     await milestone.save();
-    io.to(milestone.client.toString()).emit("milestoneUpdate", {
-      milestoneId: milestone._id,
-      status: milestone.status,
-    });
-
-    io.to(milestone.freelancer.toString()).emit("milestoneUpdate", {
-      milestoneId: milestone._id,
-      status: milestone.status,
-    });
     return res.status(200).json({ message: "Milestone approved successfully", milestone });
   } catch (err) {
-    return res.status(500).json({ message: "Server Error" })
+    return res.status(500).json({ message: "Server Error" });
   }
 }
 
@@ -87,22 +69,13 @@ export async function disputeMilestone(req, res) {
       return res.status(400).json({ message: "Milestone does not exist" });
     }
     if (milestone.status !== "submitted") {
-      return res.status(400).json({ message: "You can only dispute submitted milestones only" })
+      return res.status(400).json({ message: "You can only dispute submitted milestones only" });
     }
     milestone.status = "disputed";
     await milestone.save();
-    io.to(milestone.client.toString()).emit("milestoneUpdate", {
-      milestoneId: milestone._id,
-      status: milestone.status,
-    });
-
-    io.to(milestone.freelancer.toString()).emit("milestoneUpdate", {
-      milestoneId: milestone._id,
-      status: milestone.status,
-    });
     return res.status(200).json({ message: "Milestone disputed successfully", milestone });
   } catch (err) {
-    return res.status(500).json({ message: "Server Error" })
+    return res.status(500).json({ message: "Server Error" });
   }
 }
 
@@ -114,26 +87,39 @@ export async function releaseMilestone(req, res) {
       return res.status(400).json({ message: "Milestone does not exist" });
     }
     if (milestone.status !== "approved" && milestone.status !== "disputed") {
-      return res.status(400).json({ message: "You can only release approved or disputed milestones only" })
+      return res.status(400).json({ message: "You can only release approved or disputed milestones only" });
     }
     milestone.status = "released";
     await milestone.save();
-    const invoiceUrl = await generateInvoice(milestone);
-    milestone.invoiceUrl = invoiceUrl;
-    await milestone.save();
 
-    io.to(milestone.client.toString()).emit("milestoneUpdate", {
-      milestoneId: milestone._id,
-      status: milestone.status,
-    });
+    // fetch freelancer email
+    const contract = await contractModel.findById(milestone.contract)
+      .populate("freelancer", "name email");
 
-    io.to(milestone.freelancer.toString()).emit("milestoneUpdate", {
-      milestoneId: milestone._id,
-      status: milestone.status,
-    });
+    await sendEmail(
+      contract.freelancer.email,
+      "Milestone Payment Released",
+      `<p>Hi ${contract.freelancer.name}, your payment for milestone <b>${milestone.title}</b> has been released. You can download your invoice from the platform.</p>`
+    );
+
     return res.status(200).json({ message: "Milestone released successfully", milestone });
   } catch (err) {
-    return res.status(500).json({ message: "Server Error" })
+    return res.status(500).json({ message: "Server Error" });
   }
 }
 
+export async function downloadInvoice(req, res) {
+  try {
+    const { milestoneId } = req.params;
+    const milestone = await milestoneModel.findById(milestoneId);
+    if (!milestone) {
+      return res.status(404).json({ message: "Milestone does not exist" });
+    }
+    if (milestone.status !== "released") {
+      return res.status(400).json({ message: "Invoice only available for released milestones" });
+    }
+    generateInvoice(milestone, res);
+  } catch (err) {
+    return res.status(500).json({ message: "Server Error" });
+  }
+}

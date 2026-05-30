@@ -3,6 +3,9 @@ import cookieParser from "cookie-parser";
 import userRouter from "./routes/user.route.js";
 import contractRouter from "./routes/contract.routes.js"
 import milestoneRouter from "./routes/milestone.routes.js"
+import disputeRouter from "./routes/dispute.route.js"
+import adminRouter from "./routes/admin.routes.js";
+import reviewRouter from "./routes/review.routes.js"
 import autoRelease from "./cron/autoRelease.js";
 import paymentRouter from "./routes/payment.routes.js"
 import { rateLimit } from "express-rate-limit";
@@ -33,5 +36,8 @@ app.use("/api/users", userRouter);
 app.use("/api/contract", contractRouter);
 app.use("/api/milestone", milestoneRouter);
 app.use("/api/payments", payementLimiter, paymentRouter);
+app.use("/api/disputes",disputeRouter);
+app.use("/api/admin",adminRouter);
+app.use("/api/reviews",reviewRouter);
 
 export default app;

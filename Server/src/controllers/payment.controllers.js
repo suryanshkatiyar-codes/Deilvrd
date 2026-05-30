@@ -1,5 +1,4 @@
 import milestoneModel from "../models/milestone.model.js";
-import processedPaymentModel from "../models/processedPayment.model.js";
 import { createOrder as mockCreateOrder, verifyPayment as mockVerifyPayment } from "../config/mockPayment.js";
 
 export async function createOrder(req, res) {
@@ -52,15 +51,6 @@ export async function webhookHandler(req, res) {
   try {
     const { event, paymentId, orderId } = req.body;
 
-    // idempotency check — skip if already processed
-    const alreadyProcessed = await processedPaymentModel.findOne({ paymentId });
-    if (alreadyProcessed) {
-      return res.status(200).json({ message: "Already processed" });
-    }
-
-    // save paymentId first before processing
-    await processedPaymentModel.create({ paymentId });
-
     if (event === "payment.captured") {
       const milestone = await milestoneModel.findOne({ razorpay_order_id: orderId });
       if (milestone) {
@@ -77,7 +67,6 @@ export async function webhookHandler(req, res) {
       }
     }
 
-    // always return 200 immediately — never make the gateway wait
     return res.status(200).json({ message: "Webhook processed" });
   } catch (err) {
     return res.status(500).json({ message: "Server Error" });
