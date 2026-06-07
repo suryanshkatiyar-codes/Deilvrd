@@ -43,9 +43,6 @@ const milestoneSchema = mongoose.Schema({
   submittedAt: {
     type: Date,
   },
-  razorpay_order_id: {
-    type: String,
-  },
   invoiceUrl: {
     type: String,
   },

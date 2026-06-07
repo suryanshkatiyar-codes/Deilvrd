@@ -10,8 +10,12 @@ export function protect(req, res, next) {
     }
 
     const token = authHeader.split(" ")[1];
-    const decoded = jwt.verify(token, config.JWT_ACCESS_SECRET);
-
+    let decoded;
+    try{
+      decoded = jwt.verify(token, config.JWT_ACCESS_SECRET);
+    }catch(err){
+      return res.status(401).json({ message: "Access token is incorrect" });
+    }
     req.user = decoded;
     next();
   } catch (err) {

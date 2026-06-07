@@ -15,7 +15,7 @@ export async function register(req, res) {
     })
 
     if (userExits) {
-      return res.status(400).json("User already exists");
+      return res.status(409).json("User already exists");
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -45,7 +45,7 @@ export async function login(req, res) {
     })
 
     if (!user) {
-      return res.status(400).json({ message: "User does not exist" });
+      return res.status(401).json({ message: "User does not exist" });
     }
     if (user.isBanned) {
       return res.status(403).json({ message: "Your account has been banned" });
@@ -57,7 +57,7 @@ export async function login(req, res) {
       return res.status(401).json({ message: "Incorrect password" });
     }
 
-    refreshToken = jwt.sign(
+    const refreshToken = jwt.sign(
       { id: user._id },
       config.JWT_REFRESH_SECRET,
       { expiresIn: "7d" }
@@ -82,7 +82,7 @@ export async function login(req, res) {
       maxAge: 7 * 24 * 60 * 60 * 1000,
     })
 
-    user = await userModel.findById(user._id).select("-refreshToken -password");
+    user = await userModel.findById(user._id);
 
     return res.status(200).json({ message: "User logged in successfully", user, accessToken });
   } catch (err) {
@@ -111,7 +111,7 @@ export async function refresh(req, res) {
     }
 
     if (user.refreshToken !== refreshToken) {
-      return res.status(400).json({ message: "Invalid refresh token" })
+      return res.status(401).json({ message: "Invalid refresh token" })
     }
 
     refreshToken = jwt.sign(

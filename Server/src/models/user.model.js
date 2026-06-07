@@ -18,11 +18,12 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    default: "User",
+    default: "Client",
     enum: ["Admin", "Client", "Freelancer"],
   },
   refreshToken:{
     type:String,
+    select:false,
   },
   kyc: {
     status: {

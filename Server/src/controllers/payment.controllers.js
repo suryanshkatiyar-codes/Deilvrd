@@ -28,16 +28,15 @@ export async function verifyPayment(req, res) {
   try {
     const { orderId, paymentId, milestoneId } = req.body;
 
-    const isValid = mockVerifyPayment({ orderId, paymentId });
-    if (!isValid) {
-      return res.status(400).json({ message: "Payment verification failed" });
-    }
-
     const milestone = await milestoneModel.findById(milestoneId);
     if (!milestone) {
       return res.status(404).json({ message: "Milestone not found" });
     }
 
+    const isValid = mockVerifyPayment({ orderId, paymentId });
+    if (!isValid) {
+      return res.status(400).json({ message: "Payment verification failed" });
+    }
     milestone.status = "funded";
     await milestone.save();
 

@@ -3,11 +3,13 @@ import mongoose from "mongoose";
 const contractSchema=new mongoose.Schema({
   client:{
     type:mongoose.Schema.Types.ObjectId,
-    ref:"Users"
+    ref:"Users",
+    required:true,
   },
   freelancer:{
     type:mongoose.Schema.Types.ObjectId,
-    ref:"Users"
+    ref:"Users",
+    required:true,
   },
   title:{
     type:String,
