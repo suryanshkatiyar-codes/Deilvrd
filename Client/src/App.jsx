@@ -1,30 +1,38 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
+import DashboardLayout from "./components/DashboardLayout";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
-
-// Placeholder — we build these on Day 2+
-function Dashboard() {
-  return <div className="text-white p-8">Dashboard — Day 2</div>;
-}
+import DashboardPage from "./pages/DashboardPage";
+import ContractsPage from "./pages/ContractsPage";
 
 export default function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
         <Routes>
+          {/* Public */}
           <Route path="/login"    element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+
+          {/* Protected shell */}
           <Route
-            path="/dashboard"
             element={
               <ProtectedRoute>
-                <Dashboard />
+                <DashboardLayout />
               </ProtectedRoute>
             }
-          />
-          <Route path="*" element={<Navigate to="/login" replace />} />
+          >
+            <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/contracts" element={<ContractsPage />} />
+            {/* Day 3+ */}
+            <Route path="/milestones" element={<div className="text-white">Milestones — Day 3</div>} />
+            <Route path="/disputes"   element={<div className="text-white">Disputes — Day 4</div>} />
+            <Route path="/reviews"    element={<div className="text-white">Reviews — Day 4</div>} />
+          </Route>
+
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
