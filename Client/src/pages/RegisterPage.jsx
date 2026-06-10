@@ -4,7 +4,7 @@ import api from "../api/axios";
 
 export default function RegisterPage() {
   const navigate = useNavigate();
-  const [form, setForm]     = useState({ name: "", email: "", password: "", role: "freelancer" });
+  const [form, setForm]     = useState({ name: "", email: "", password: "", role: "Freelancer" });
   const [error, setError]   = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -54,8 +54,8 @@ export default function RegisterPage() {
             <div>
               <label className="block text-sm text-gray-400 mb-1.5">Full name</label>
               <input
-                name="name"
-                value={form.name}
+                name="username"
+                value={form.username}
                 onChange={handleChange}
                 required
                 placeholder="Arjun Mehta"
@@ -92,7 +92,7 @@ export default function RegisterPage() {
             <div>
               <label className="block text-sm text-gray-400 mb-1.5">I am a</label>
               <div className="grid grid-cols-2 gap-3">
-                {["freelancer", "client"].map((r) => (
+                {["Freelancer", "Client"].map((r) => (
                   <button
                     key={r}
                     type="button"

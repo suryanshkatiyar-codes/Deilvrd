@@ -2,7 +2,7 @@ import disputeModel from "../models/dispute.model.js";
 import milestoneModel from "../models/milestone.model.js";
 import userModel from "../models/user.model.js";
 import contractModel from "../models/contract.model.js";
-import { sendEmail } from "../utils/email.js";
+import { sendEmail } from "../utils/sendEmail.js";
 
 export async function raiseDispute(req, res) {
   try {

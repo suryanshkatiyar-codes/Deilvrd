@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { createOrder, verifyPayment, webhookHandler } from "../controllers/payment.controller.js";
+import { createOrder, verifyPayment, webhookHandler } from "../controllers/payment.controllers.js";
 import { protect } from "../middleware/auth.js";
 
 const router = Router();

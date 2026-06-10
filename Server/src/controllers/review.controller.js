@@ -3,7 +3,7 @@ import reviewModel from "../models/review.model.js";
 import milestoneModel from "../models/milestone.model.js";
 import mongoose from "mongoose";
 import userModel from "../models/user.model.js";
-import { sendEmail } from "../utils/email.js";
+import { sendEmail } from "../utils/sendEmail.js";
 
 export async function submitReview(req, res) {
   try {
@@ -47,7 +47,7 @@ export async function submitReview(req, res) {
     });
 
     // fetch reviewee details to send email
-    const reviewee = await userModel.findById(revieweeId).select("name email");
+    reviewee = await userModel.findById(revieweeId).select("name email");
 
     await sendEmail(
       reviewee.email,

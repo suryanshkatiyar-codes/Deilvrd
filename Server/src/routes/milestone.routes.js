@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { approveMilestone, disputeMilestone, fundMilestone, releaseMilestone, submitMilestone, downloadInvoice } from "../controllers/milestone.controllers.js";
-import { protect } from "../middleware/auth.j";
+import { protect } from "../middleware/auth.js";
 import { roleCheck } from "../middleware/roleCheck.js";
 import { upload } from "../config/cloudinary.js";
 

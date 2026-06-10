@@ -1,6 +1,6 @@
 import userModel from "../models/user.model.js";
 import bcrypt from "bcryptjs";
-import { config } from "../config/config.js";
+import  config from "../config/config.js";
 import jwt from "jsonwebtoken";
 
 export async function register(req, res) {
@@ -35,14 +35,9 @@ export async function register(req, res) {
 
 export async function login(req, res) {
   try {
-    const { username, email, password } = req.body;
+    const {email, password } = req.body;
 
-    let user = await userModel.findOne({
-      $or: [
-        { username },
-        { email }
-      ]
-    })
+    let user = await userModel.findOne({email}).select("+password");
 
     if (!user) {
       return res.status(401).json({ message: "User does not exist" });
@@ -86,6 +81,7 @@ export async function login(req, res) {
 
     return res.status(200).json({ message: "User logged in successfully", user, accessToken });
   } catch (err) {
+    console.log(err);
     return res.status(500).json({ message: "Server error" });
   }
 }

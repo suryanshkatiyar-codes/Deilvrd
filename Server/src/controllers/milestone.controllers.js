@@ -1,7 +1,6 @@
 import milestoneModel from "../models/milestone.model.js";
-import { generateInvoice } from "../utils/invoice.js";
 import contractModel from "../models/contract.model.js";
-import { sendEmail } from "../utils/email.js";
+import { sendEmail } from "../utils/sendEmail.js";
 
 export async function fundMilestone(req, res) {
   try {

@@ -1,7 +1,7 @@
-import { register, login, refresh, kycSubmit, logout } from "../controllers/user.controllers";
+import { register, login, refresh, kycSubmit,kycVerify ,logout } from "../controllers/user.controllers.js";
 import { Router } from "express";
-import { protect } from "../middleware/auth";
-import { roleCheck } from "../middleware/roleCheck";
+import { protect } from "../middleware/auth.js";
+import { roleCheck } from "../middleware/roleCheck.js";
 
 const router = Router();
 
