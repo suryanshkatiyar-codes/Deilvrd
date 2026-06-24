@@ -16,7 +16,7 @@ const app = express();
 // general limiter — all routes
 const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100,
+  max: 500,
   message: { message: "Too many requests, please try again later" },
 });
 
@@ -27,13 +27,16 @@ const paymentLimiter = rateLimit({
   message: { message: "Too many payment requests, please try again later" },
 });
 
+app.use(cors({
+  origin: 'http://localhost:5173',
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
+
 app.use(cookieParser());
 app.use(express.json());
 app.use(generalLimiter);
-app.use(cors({
-  origin: 'http://localhost:5173',
-  credentials: true
-}));
 autoRelease.start();
 
 app.use("/api/auth", userRouter);

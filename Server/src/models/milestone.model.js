@@ -30,7 +30,6 @@ const milestoneSchema = mongoose.Schema({
   },
   dueDate: {
     type: Date,
-    required: true,
   },
   status: {
     type: String,

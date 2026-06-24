@@ -3,34 +3,48 @@ import { useAuth } from "../context/AuthContext";
 import api from "../api/axios";
 
 export default function KYCBanner() {
-  const { user } = useAuth();
-  const [loading, setLoading] = useState(false);
-  const [done, setDone]       = useState(false);
+  var auth = useAuth();
+  var user = auth.user;
 
-  if (user?.kycStatus === "verified" || done) return null;
-  if (user?.kycStatus === "submitted") {
+  var doneState = useState(false);
+  var done = doneState[0];
+  var setDone = doneState[1];
+
+  var loadingState = useState(false);
+  var loading = loadingState[0];
+  var setLoading = loadingState[1];
+
+  // handle both shapes
+  var kycStatus = user ? (user.kycStatus || (user.kyc ? user.kyc.status : "pending")) : "pending";
+
+  if (kycStatus === "verified" || done) return null;
+
+  if (kycStatus === "submitted") {
     return (
       <div className="mb-6 bg-yellow-400/5 border border-yellow-400/20 rounded-2xl px-5 py-4 flex items-center justify-between">
         <div>
           <p className="text-yellow-400 text-sm font-medium">KYC under review</p>
-          <p className="text-muted text-xs mt-0.5">We'll notify you once verified. You can't create contracts yet.</p>
+          <p className="text-muted text-xs mt-0.5">We will notify you once verified. You cannot create contracts yet.</p>
         </div>
         <span className="text-yellow-400 text-xl">⏳</span>
       </div>
     );
   }
 
-  const handleSubmit = async () => {
+  function handleSubmit() {
     setLoading(true);
-    try {
-      await api.patch("/users/kyc-submit");
-      setDone(true);
-    } catch {
-      // fail silently — user can retry
-    } finally {
-      setLoading(false);
-    }
-  };
+    api.patch("/users/kyc-submit")
+      .then(function() {
+        setDone(true);
+      })
+      .catch(function(err) {
+        var msg = err.response && err.response.data ? err.response.data.message : "Failed";
+        alert(msg);
+      })
+      .finally(function() {
+        setLoading(false);
+      });
+  }
 
   return (
     <div className="mb-6 bg-brand-500/5 border border-brand-500/20 rounded-2xl px-5 py-4 flex items-center justify-between gap-4">

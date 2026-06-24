@@ -4,36 +4,53 @@ import api from "../api/axios";
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [user, setUser]   = useState(null);
-  const [loading, setLoading] = useState(true); // checking session on mount
+  var userState = useState(null);
+  var user = userState[0];
+  var setUser = userState[1];
 
-  // On app load — try to restore session via refresh token cookie
-  useEffect(() => {
-    (async () => {
-      try {
-        const { data } = await api.post("/auth/refresh");
-        window.__accessToken__ = data.accessToken;
-        setUser(data.user);
-      } catch {
-        // no valid session — fine, stay logged out
-      } finally {
+  var loadingState = useState(true);
+  var loading = loadingState[0];
+  var setLoading = loadingState[1];
+
+  function normalizeUser(u) {
+    if (!u) return null;
+    if (u.kyc) u.kycStatus = u.kyc.status;
+    return u;
+  }
+
+  useEffect(function() {
+    api.post("/auth/refresh")
+      .then(function(res) {
+        window.__accessToken__ = res.data.accessToken;
+        return api.get("/users/me");
+      })
+      .then(function(res) {
+        setUser(normalizeUser(res.data.user));
+      })
+      .catch(function() {
+        // no active session, stay logged out
+      })
+      .finally(function() {
         setLoading(false);
-      }
-    })();
+      });
   }, []);
 
-  const login = async (email, password) => {
-    const { data } = await api.post("/auth/login", { email, password });
-    window.__accessToken__ = data.accessToken;
-    setUser(data.user);
-    return data.user;
-  };
+  function login(email, password) {
+    return api.post("/auth/login", { email, password })
+      .then(function(res) {
+        window.__accessToken__ = res.data.accessToken;
+        setUser(normalizeUser(res.data.user));
+        return normalizeUser(res.data.user);
+      });
+  }
 
-  const logout = async () => {
-    await api.post("/auth/logout");
-    window.__accessToken__ = null;
-    setUser(null);
-  };
+  function logout() {
+    return api.post("/auth/logout")
+      .then(function() {
+        window.__accessToken__ = null;
+        setUser(null);
+      });
+  }
 
   return (
     <AuthContext.Provider value={{ user, loading, login, logout }}>
@@ -42,4 +59,6 @@ export function AuthProvider({ children }) {
   );
 }
 
-export const useAuth = () => useContext(AuthContext);
+export function useAuth() {
+  return useContext(AuthContext);
+}

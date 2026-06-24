@@ -72,8 +72,8 @@ export async function login(req, res) {
 
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      secure: true,
-      sameSite: "strict",
+      secure: false,
+      sameSite: "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     })
 
@@ -90,6 +90,8 @@ export async function refresh(req, res) {
   try {
     let refreshToken = req.cookies.refreshToken;
 
+    console.log("Cookie token:", refreshToken);
+
     if (!refreshToken) {
       return res.status(400).json({ message: "No refresh token detected" })
     }
@@ -97,14 +99,18 @@ export async function refresh(req, res) {
     try {
       decoded = jwt.verify(refreshToken, config.JWT_REFRESH_SECRET);
     } catch (err) {
+      console.log("JWT verify failed:", err.message);
       return res.status(401).json({ message: "Invalid refresh token" })
     }
 
-    let user = await userModel.findById(decoded.id);
+    let user = await userModel.findById(decoded.id).select("+refreshToken");
 
     if (!user) {
       return res.status(401).json({ message: "User not found" });
     }
+
+    console.log("DB token:", user.refreshToken);
+    console.log("Match:", user.refreshToken === refreshToken);
 
     if (user.refreshToken !== refreshToken) {
       return res.status(401).json({ message: "Invalid refresh token" })
@@ -130,13 +136,14 @@ export async function refresh(req, res) {
 
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      secure: true,
-      sameSite: "strict",
+      secure: false,
+      sameSite: "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     })
 
     return res.status(200).json({ message: "Token rotation done successfully", accessToken });
   } catch (err) {
+    console.log("Server error:", err);
     return res.status(500).json({ message: "Server Error" });
   }
 }
@@ -154,6 +161,16 @@ export async function logout(req, res) {
   }
 }
 
+export async function getMe(req, res) {
+  try {
+    const user = await userModel.findById(req.user.id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+    return res.status(200).json({ user });
+  } catch (err) {
+    return res.status(500).json({ message: "Server Error" });
+  }
+}
+
 export async function kycSubmit(req, res) {
   try {
     const userId = req.user.id;
@@ -163,6 +180,7 @@ export async function kycSubmit(req, res) {
     }
     user.kyc.status = "submitted";
     await user.save();
+    return res.status(200).json({message:"KYC submitted successfully",user})
   } catch (err) {
     return res.status(500).json({ message: "Server Error" })
   }
