@@ -26,22 +26,24 @@ export default function MilestoneActionButton(props) {
   var endpoint = config.endpoint;
   var cls = "text-xs font-medium px-3 py-1.5 rounded-lg transition-all disabled:opacity-50 " + config.cls;
 
-  function handleClick() {
-    setLoading(true);
-    api.post("/milestones/" + endpoint + "/" + milestoneId)
-      .then(function() {
-        if (onSuccess) onSuccess();
-      })
-      .catch(function(err) {
-        var msg = err.response && err.response.data && err.response.data.message
-          ? err.response.data.message
-          : "Action failed";
-        alert(msg);
-      })
-      .finally(function() {
-        setLoading(false);
-      });
-  }
+function handleClick() {
+  setLoading(true);
+  api.post("/milestone/" + config.endpoint + "/" + milestoneId)
+    .then(function() {
+      if (action === "dispute") {
+        return api.post("/disputes/" + milestoneId);
+      }
+    })
+    .then(function() {
+      if (onSuccess) onSuccess();
+    })
+    .catch(function(err) {
+      var msg = err.response && err.response.data && err.response.data.message
+        ? err.response.data.message : "Action failed";
+      alert(msg);
+    })
+    .finally(function() { setLoading(false); });
+}
 
   return (
     <button

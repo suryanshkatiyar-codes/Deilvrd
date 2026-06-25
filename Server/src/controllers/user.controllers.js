@@ -90,8 +90,6 @@ export async function refresh(req, res) {
   try {
     let refreshToken = req.cookies.refreshToken;
 
-    console.log("Cookie token:", refreshToken);
-
     if (!refreshToken) {
       return res.status(400).json({ message: "No refresh token detected" })
     }
@@ -108,9 +106,6 @@ export async function refresh(req, res) {
     if (!user) {
       return res.status(401).json({ message: "User not found" });
     }
-
-    console.log("DB token:", user.refreshToken);
-    console.log("Match:", user.refreshToken === refreshToken);
 
     if (user.refreshToken !== refreshToken) {
       return res.status(401).json({ message: "Invalid refresh token" })

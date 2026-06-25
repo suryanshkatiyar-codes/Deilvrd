@@ -11,38 +11,19 @@ export async function raiseDispute(req, res) {
     if (!milestone) {
       return res.status(400).json({ message: "Milestone does not exist" });
     }
-    if (milestone.status !== "submitted") {
-      return res.status(400).json({ message: "Only submitted milestone can be disputed" })
-    }
-    milestone.status = "disputed";
-    await milestone.save();
-    const userId = req.user.Id;
+
+    const userId = req.user.id;
     const dispute = await disputeModel.create({
       milestone: milestoneId,
       contract: milestone.contract,
       raisedBy: userId,
       status: "open",
-    })
+    });
 
-    // fetch client and freelancer emails
-    const contract = await contractModel.findById(milestone.contract)
-      .populate("client", "name email")
-      .populate("freelancer", "name email");
-
-    await sendEmail(
-      contract.client.email,
-      "Dispute Raised on Your Contract",
-      `<p>Hi ${contract.client.name}, a dispute has been raised on milestone <b>${milestone.title}</b>. Our team will review it shortly.</p>`
-    );
-
-    await sendEmail(
-      contract.freelancer.email,
-      "Dispute Raised on Your Contract",
-      `<p>Hi ${contract.freelancer.name}, a dispute has been raised on milestone <b>${milestone.title}</b>. Our team will review it shortly.</p>`
-    );
-
-    return res.status(200).json({ message: "Dispute created successfully" });
+    console.log("dispute created:", dispute);
+    return res.status(200).json({ message: "Dispute created successfully", dispute });
   } catch (err) {
+    console.error("raiseDispute error:", err);
     return res.status(500).json({ message: "Server Error" });
   }
 }
@@ -76,7 +57,7 @@ export async function resolveDispute(req, res) {
     await milestone.save();
     dispute.status = "resolved";
     dispute.resolution = resolution;
-    dispute.resolvedBy = req.user.Id;
+    dispute.resolvedBy = req.user.id;
     dispute.releasePercentage = releasePercentage;
     await dispute.save();
     return res.status(200).json({ message: "Dispute resolved successfully" });
@@ -113,5 +94,25 @@ export async function submitEvidence(req, res) {
     return res.status(200).json({ message: "Evidence submitted successfully" });
   } catch (err) {
     return res.status(500).json({ message: "Server Error" })
+  }
+}
+
+export async function getMyDisputes(req, res) {
+  try {
+    const userId = req.user.id;
+    const contracts = await contractModel.find({
+      $or: [{ client: userId }, { freelancer: userId }]
+    });
+    const contractIds = contracts.map(function(c) { return c._id; });
+    const disputes = await disputeModel
+      .find({ contract: { $in: contractIds } })
+      .populate("milestone", "title amount")
+      .populate("contract", "title")
+      .populate("raisedBy", "username")
+      .sort({ createdAt: -1 });
+    return res.status(200).json({ disputes });
+  } catch (err) {
+    console.error("getMyDisputes error:", err);
+    return res.status(500).json({ message: "Server Error" });
   }
 }

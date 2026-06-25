@@ -36,6 +36,7 @@ const reviewSchema = new mongoose.Schema({
   }
 })
 
-const reviewModel=mongoose.model("Reviews",reviewSchema);
+reviewSchema.index({ contract: 1, reviewer: 1 }, { unique: true });
 
+const reviewModel = mongoose.model("Reviews", reviewSchema);
 export default reviewModel;

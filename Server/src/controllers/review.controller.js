@@ -34,12 +34,12 @@ export async function submitReview(req, res) {
     // figure out role and reviewee
     const isClient = contract.client.toString() === req.user._id.toString();
     const role = isClient ? "clientReviewingFreelancer" : "freelancerReviewingClient";
-    const reviewee = isClient ? contract.freelancer : contract.client;
+    const revieweeId = isClient ? contract.freelancer : contract.client;
 
     const review = await reviewModel.create({
       contract: contractId,
       reviewer: req.user.id,
-      reviewee,
+      reviewee: revieweeId,
       role,
       rating,
       comment,
@@ -47,16 +47,17 @@ export async function submitReview(req, res) {
     });
 
     // fetch reviewee details to send email
-    reviewee = await userModel.findById(revieweeId).select("name email");
+    const revieweeUser = await userModel.findById(revieweeId).select("username email");
 
     await sendEmail(
-      reviewee.email,
+      revieweeUser.email,
       "You Have Received a New Review",
       `<p>Hi ${reviewee.name}, you have received a ${rating}/5 star review. Log in to Delivrd to see what was said.</p>`
     );
 
     return res.status(201).json({ message: "Review submitted successfully", review });
   } catch (err) {
+    console.error("submitReview error:", err);
     return res.status(500).json({ message: "Server Error" });
   }
 }

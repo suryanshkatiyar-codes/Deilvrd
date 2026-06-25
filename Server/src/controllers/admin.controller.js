@@ -33,7 +33,7 @@ export async function getAllUsers(req, res) {
 
     const users = await userModel
       .find()
-      .select("name email role kyc createdAt")
+      .select("name email role kyc createdAt isBanned")
       .skip(skip)
       .limit(limit);
 

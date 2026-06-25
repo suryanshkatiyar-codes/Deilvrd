@@ -122,3 +122,16 @@ export async function downloadInvoice(req, res) {
     return res.status(500).json({ message: "Server Error" });
   }
 }
+
+export async function getMyMilestones(req, res) {
+  try {
+    const userId = req.user.id;
+    const milestones = await milestoneModel
+      .find({ $or: [{ client: userId }, { freelancer: userId }] })
+      .populate("contract", "title")
+      .sort({ createdAt: -1 });
+    return res.status(200).json({ milestones });
+  } catch (err) {
+    return res.status(500).json({ message: "Server Error" });
+  }
+}
