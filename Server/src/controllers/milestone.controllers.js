@@ -1,6 +1,7 @@
 import milestoneModel from "../models/milestone.model.js";
 import contractModel from "../models/contract.model.js";
 import { sendEmail } from "../utils/sendEmail.js";
+import { generateInvoice } from "../utils/generateInvoice.js";
 
 export async function fundMilestone(req, res) {
   try {
@@ -110,7 +111,11 @@ export async function releaseMilestone(req, res) {
 export async function downloadInvoice(req, res) {
   try {
     const { milestoneId } = req.params;
-    const milestone = await milestoneModel.findById(milestoneId);
+    const milestone = await milestoneModel
+      .findById(milestoneId)
+      .populate("client", "username email")
+      .populate("freelancer", "username email");
+    
     if (!milestone) {
       return res.status(404).json({ message: "Milestone does not exist" });
     }

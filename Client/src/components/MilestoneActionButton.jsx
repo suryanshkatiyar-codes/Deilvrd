@@ -28,17 +28,53 @@ export default function MilestoneActionButton(props) {
 
 function handleClick() {
   setLoading(true);
-  api.post("/milestone/" + config.endpoint + "/" + milestoneId)
-    .then(function() {
-      if (action === "dispute") {
+
+  if (action === "fund") {
+    api.post("/payments/create-order", { milestoneId: milestoneId })
+      .then(function(res) {
+        const orderId = res.data.order.orderId;
+        const paymentId = "pay_" + Date.now();
+        return api.post("/payments/verify", {
+          orderId: orderId,
+          paymentId: paymentId,
+          milestoneId: milestoneId,
+        });
+      })
+      .then(function() {
+        if (onSuccess) onSuccess();
+      })
+      .catch(function(err) {
+        const msg = err.response && err.response.data && err.response.data.message
+          ? err.response.data.message : "Payment failed";
+        alert(msg);
+      })
+      .finally(function() { setLoading(false); });
+    return;
+  }
+
+  if (action === "dispute") {
+    api.post("/milestone/" + config.endpoint + "/" + milestoneId)
+      .then(function() {
         return api.post("/disputes/" + milestoneId);
-      }
-    })
+      })
+      .then(function() {
+        if (onSuccess) onSuccess();
+      })
+      .catch(function(err) {
+        const msg = err.response && err.response.data && err.response.data.message
+          ? err.response.data.message : "Action failed";
+        alert(msg);
+      })
+      .finally(function() { setLoading(false); });
+    return;
+  }
+
+  api.post("/milestone/" + config.endpoint + "/" + milestoneId)
     .then(function() {
       if (onSuccess) onSuccess();
     })
     .catch(function(err) {
-      var msg = err.response && err.response.data && err.response.data.message
+      const msg = err.response && err.response.data && err.response.data.message
         ? err.response.data.message : "Action failed";
       alert(msg);
     })

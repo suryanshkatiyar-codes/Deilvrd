@@ -3,19 +3,24 @@ import PDFDocument from "pdfkit";
 export async function generateInvoice(milestone, res) {
   const doc = new PDFDocument();
 
-  // tell the browser to download it as a pdf file
   res.setHeader("Content-Type", "application/pdf");
   res.setHeader(
     "Content-Disposition",
-    `attachment; filename=invoice-${milestone._id}.pdf`
+    "attachment; filename=invoice-" + milestone._id + ".pdf"
   );
 
-  // pipe the pdf directly into the response
   doc.pipe(res);
 
-  // build the pdf content
   const gst = milestone.amount * 0.18;
   const total = milestone.amount + gst;
+
+  const clientName = milestone.client && milestone.client.username
+    ? milestone.client.username
+    : milestone.client.toString();
+
+  const freelancerName = milestone.freelancer && milestone.freelancer.username
+    ? milestone.freelancer.username
+    : milestone.freelancer.toString();
 
   doc
     .fontSize(24)
@@ -24,27 +29,27 @@ export async function generateInvoice(milestone, res) {
 
   doc
     .fontSize(12)
-    .text(`Date: ${new Date().toLocaleDateString()}`)
+    .text("Date: " + new Date().toLocaleDateString())
     .moveDown();
 
   doc
-    .text(`Milestone: ${milestone.title}`)
+    .text("Milestone: " + milestone.title)
     .moveDown();
 
   doc
-    .text(`Client: ${milestone.client}`)
-    .text(`Freelancer: ${milestone.freelancer}`)
+    .text("Client: " + clientName)
+    .text("Freelancer: " + freelancerName)
     .moveDown();
 
   doc
-    .text(`Amount: ₹${milestone.amount}`)
-    .text(`GST (18%): ₹${gst.toFixed(2)}`)
-    .text(`Total: ₹${total.toFixed(2)}`)
+    .text("Amount: Rs." + milestone.amount)
+    .text("GST (18%): Rs." + gst.toFixed(2))
+    .text("Total: Rs." + total.toFixed(2))
     .moveDown();
 
   doc
     .fontSize(10)
-    .text(`Generated at: ${new Date().toISOString()}`, { align: "center" });
+    .text("Generated at: " + new Date().toISOString(), { align: "center" });
 
   doc.end();
 }

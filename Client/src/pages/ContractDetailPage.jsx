@@ -2,6 +2,7 @@ import { useParams } from "react-router-dom";
 import useFetch from "../hooks/useFetch";
 import { useAuth } from "../context/AuthContext";
 import MilestoneActionButton from "../components/MilestoneActionButton";
+import api from "../api/axios";
 
 function getStatusClass(status) {
   if (status === "pending") return "bg-gray-500/10 text-gray-400";
@@ -37,26 +38,69 @@ function FileLinkOrNull(props) {
 }
 
 function MilestoneCard(props) {
-  var milestone = props.milestone;
-  var role = props.role;
-  var onAction = props.onAction;
+  const milestone = props.milestone;
+  const role = props.role;
+  const onAction = props.onAction;
 
-  var status = milestone.status;
-  var title = milestone.title;
-  var description = milestone.description;
-  var fileUrl = milestone.fileUrl;
-  var amount = milestone.amount;
-  var milestoneId = milestone._id;
-  var amountText = amount ? amount.toLocaleString() : "0";
+  const status = milestone.status;
+  const title = milestone.title;
+  const description = milestone.description;
+  const fileUrl = milestone.deliverableUrl;
+  const amount = milestone.amount;
+  const milestoneId = milestone._id;
+  const amountText = amount ? amount.toLocaleString() : "0";
 
-  var actions = [];
+  const actions = [];
   if (role === "Client") {
-    if (status === "pending") actions.push("fund");
+    if (status === "pending")   actions.push("fund");
     if (status === "submitted") { actions.push("approve"); actions.push("dispute"); }
-    if (status === "disputed") actions.push("release");
+    if (status === "disputed")  actions.push("release");
   }
   if (role === "Freelancer") {
     if (status === "funded") actions.push("submit");
+  }
+
+function handleInvoiceDownload() {
+  api.get("/milestone/" + milestoneId + "/invoice", { responseType: "blob" })
+    .then(function(res) {
+      const url = window.URL.createObjectURL(new Blob([res.data], { type: "application/pdf" }));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", "invoice-" + milestoneId + ".pdf");
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    })
+    .catch(function(err) {
+      alert("Failed to download invoice");
+    });
+}
+
+  function renderInvoiceButton() {
+    if (status !== "released") return null;
+    return (
+      <button
+        onClick={handleInvoiceDownload}
+        className="text-xs font-medium px-3 py-1.5 rounded-lg transition-all bg-emerald-500/10 text-emerald-400 border border-emerald-400/30 hover:bg-emerald-500/20"
+      >
+        Download Invoice
+      </button>
+    );
+  }
+
+  function renderFileLink() {
+    if (!fileUrl) return null;
+    return (
+      <a
+        href={fileUrl}
+        target="_blank"
+        rel="noreferrer"
+        className="inline-block mt-2 text-xs text-brand-500 hover:text-brand-400 transition-colors"
+      >
+        View submitted file
+      </a>
+    );
   }
 
   return (
@@ -68,12 +112,12 @@ function MilestoneCard(props) {
             <StatusPill status={status} />
           </div>
           <p className="text-muted text-xs leading-relaxed">{description}</p>
-          <FileLinkOrNull fileUrl={fileUrl} />
+          {renderFileLink()}
         </div>
         <div className="text-right shrink-0">
           <p className="text-white font-display font-bold">{"Rs." + amountText}</p>
           <div className="flex gap-2 mt-2 justify-end flex-wrap">
-            {actions.map(function (action) {
+            {actions.map(function(action) {
               return (
                 <MilestoneActionButton
                   key={action}
@@ -83,6 +127,7 @@ function MilestoneCard(props) {
                 />
               );
             })}
+            {renderInvoiceButton()}
           </div>
         </div>
       </div>

@@ -45,8 +45,10 @@ const milestoneSchema = mongoose.Schema({
   invoiceUrl: {
     type: String,
   },
-}, { timestamps: true })
+  razorpay_order_id: {
+    type: String,
+  },
+}, { timestamps: true });
 
 const milestoneModel = mongoose.model("Milestones", milestoneSchema);
-
 export default milestoneModel;
