@@ -135,7 +135,7 @@ export default function MilestonesPage() {
         <p className="text-muted text-sm mt-0.5">{milestones.length + " total"}</p>
       </div>
 
-      <div className="grid grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         <div className="bg-card border border-line rounded-2xl px-5 py-4">
           <p className="text-muted text-xs uppercase tracking-wider">Pending</p>
           <p className="text-white font-display text-2xl font-bold mt-1">{pending}</p>

@@ -125,7 +125,7 @@ export default function DashboardPage() {
         <p className="text-muted text-sm mt-1">{"Here's what's happening with your contracts."}</p>
       </div>
 
-      <div className="grid grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
         <StatCard label="Total Contracts" value={list.length} />
         <StatCard label="Active"          value={active}    sub="In progress" />
         <StatCard label="Completed"       value={completed} sub="All milestones released" />

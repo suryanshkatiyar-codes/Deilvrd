@@ -2,12 +2,13 @@ import { useState } from "react";
 import useFetch from "../hooks/useFetch";
 import { useAuth } from "../context/AuthContext";
 import api from "../api/axios";
+import { useToast } from "../context/ToastContext";
 
 function TabButton(props) {
-  var label = props.label;
-  var active = props.active;
-  var onClick = props.onClick;
-  var cls = "px-4 py-2 text-sm font-medium rounded-xl transition-colors " +
+  const label = props.label;
+  const active = props.active;
+  const onClick = props.onClick;
+  const cls = "px-4 py-2 text-sm font-medium rounded-xl transition-colors " +
     (active ? "bg-brand-500/15 text-brand-500" : "text-muted hover:text-white");
   return (
     <button onClick={onClick} className={cls}>{label}</button>
@@ -15,17 +16,17 @@ function TabButton(props) {
 }
 
 function AnalyticsTab() {
-  var fetchResult = useFetch("/admin/analytics");
-  var data = fetchResult.data;
-  var loading = fetchResult.loading;
+  const fetchResult = useFetch("/admin/analytics");
+  const data = fetchResult.data;
+  const loading = fetchResult.loading;
 
   if (loading) return <div className="text-center text-muted text-sm py-16">Loading...</div>;
 
-  var analytics = data ? data.analytics : null;
+  const analytics = data ? data.analytics : null;
   if (!analytics) return null;
 
   return (
-    <div className="grid grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
       <div className="bg-card border border-line rounded-2xl px-5 py-5">
         <p className="text-muted text-xs uppercase tracking-wider">Escrow Held</p>
         <p className="text-white font-display text-2xl font-bold mt-1">{"Rs." + (analytics.escrowHeld || 0).toLocaleString()}</p>
@@ -43,20 +44,24 @@ function AnalyticsTab() {
 }
 
 function UsersTab() {
-  var fetchResult = useFetch("/admin/users");
-  var data = fetchResult.data;
-  var loading = fetchResult.loading;
-  var refetch = fetchResult.refetch;
+  const { showToast } = useToast();
+  const fetchResult = useFetch("/admin/users");
+  const data = fetchResult.data;
+  const loading = fetchResult.loading;
+  const refetch = fetchResult.refetch;
 
-  var users = data ? (data.users || []) : [];
+  const users = data ? (data.users || []) : [];
 
   function handleBan(userId) {
     api.patch("/admin/users/" + userId + "/ban")
-      .then(function() { refetch(); })
+      .then(function() {
+        showToast("User banned successfully");
+        refetch();
+      })
       .catch(function(err) {
-        var msg = err.response && err.response.data && err.response.data.message
+        const msg = err.response && err.response.data && err.response.data.message
           ? err.response.data.message : "Failed to ban user";
-        alert(msg);
+        showToast(msg, "error");
       });
   }
 
@@ -104,20 +109,16 @@ function UsersTab() {
 }
 
 function DisputesTab() {
-  var fetchResult = useFetch("/admin/disputes");
-  var data = fetchResult.data;
-  var loading = fetchResult.loading;
-  var refetch = fetchResult.refetch;
+  const { showToast } = useToast();
+  const fetchResult = useFetch("/admin/disputes");
+  const data = fetchResult.data;
+  const loading = fetchResult.loading;
+  const refetch = fetchResult.refetch;
 
-  var disputes = data ? (data.allDisputes || []) : [];
+  const disputes = data ? (data.allDisputes || []) : [];
 
-  var resolvingState = useState(null);
-  var resolving = resolvingState[0];
-  var setResolving = resolvingState[1];
-
-  var resolutionState = useState("");
-  var resolution = resolutionState[0];
-  var setResolution = resolutionState[1];
+  const [resolving, setResolving] = useState(null);
+  const [resolution, setResolution] = useState("");
 
   function handleResolve(disputeId) {
     if (!resolution.trim()) return;
@@ -125,12 +126,13 @@ function DisputesTab() {
       .then(function() {
         setResolving(null);
         setResolution("");
+        showToast("Dispute resolved successfully");
         refetch();
       })
       .catch(function(err) {
-        var msg = err.response && err.response.data && err.response.data.message
+        const msg = err.response && err.response.data && err.response.data.message
           ? err.response.data.message : "Failed to resolve dispute";
-        alert(msg);
+        showToast(msg, "error");
       });
   }
 
@@ -140,9 +142,9 @@ function DisputesTab() {
   return (
     <div className="space-y-3">
       {disputes.map(function(d) {
-        var milestoneTitle = d.milestone ? d.milestone.title : "-";
-        var contractTitle = d.contract ? d.contract.title : "-";
-        var isResolving = resolving === d._id;
+        const milestoneTitle = d.milestone ? d.milestone.title : "-";
+        const contractTitle = d.contract ? d.contract.title : "-";
+        const isResolving = resolving === d._id;
         return (
           <div key={d._id} className="bg-card border border-line rounded-2xl px-5 py-4">
             <div className="flex items-start justify-between gap-4 mb-2">
@@ -196,13 +198,11 @@ function DisputesTab() {
 }
 
 export default function AdminPage() {
-  var auth = useAuth();
-  var user = auth.user;
-  var role = user ? user.role : "";
+  const auth = useAuth();
+  const user = auth.user;
+  const role = user ? user.role : "";
 
-  var tabState = useState("analytics");
-  var tab = tabState[0];
-  var setTab = tabState[1];
+  const [tab, setTab] = useState("analytics");
 
   if (role !== "Admin") {
     return (

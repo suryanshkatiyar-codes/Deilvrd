@@ -2,6 +2,7 @@ import { useState } from "react";
 import useFetch from "../hooks/useFetch";
 import { useAuth } from "../context/AuthContext";
 import api from "../api/axios";
+import { useToast } from "../context/ToastContext";
 
 function getStatusClass(status) {
   if (status === "open")        return "bg-red-500/10 text-red-400";
@@ -17,6 +18,7 @@ function StatusPill(props) {
 }
 
 function DisputeCard(props) {
+  const { showToast } = useToast();
   var dispute = props.dispute;
   var onRefetch = props.onRefetch;
 
@@ -38,22 +40,23 @@ function DisputeCard(props) {
   var amount = dispute.milestone && dispute.milestone.amount
     ? dispute.milestone.amount.toLocaleString() : "0";
 
-  function handleSubmitEvidence() {
-    if (!evidence.trim()) return;
-    setSubmitting(true);
-    api.post("/disputes/" + dispute._id + "/evidence", { evidence: evidence })
-      .then(function() {
-        setEvidence("");
-        setShowForm(false);
-        onRefetch();
-      })
-      .catch(function(err) {
-        var msg = err.response && err.response.data && err.response.data.message
-          ? err.response.data.message : "Failed to submit evidence";
-        alert(msg);
-      })
-      .finally(function() { setSubmitting(false); });
-  }
+function handleSubmitEvidence() {
+  if (!evidence.trim()) return;
+  setSubmitting(true);
+  api.post("/disputes/" + dispute._id + "/evidence", { evidence: evidence })
+    .then(function() {
+      setEvidence("");
+      setShowForm(false);
+      showToast("Evidence submitted successfully");
+      onRefetch();
+    })
+    .catch(function(err) {
+      const msg = err.response && err.response.data && err.response.data.message
+        ? err.response.data.message : "Failed to submit evidence";
+      showToast(msg, "error");
+    })
+    .finally(function() { setSubmitting(false); });
+}
 
   function renderEvidenceForm() {
     if (dispute.status === "resolved") return null;
@@ -169,7 +172,7 @@ export default function DisputesPage() {
         <p className="text-muted text-sm mt-0.5">{disputes.length + " total"}</p>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
         <div className="bg-card border border-line rounded-2xl px-5 py-4">
           <p className="text-muted text-xs uppercase tracking-wider">Open</p>
           <p className="text-white font-display text-2xl font-bold mt-1">{open}</p>
