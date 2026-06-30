@@ -24,19 +24,24 @@ export async function fundMilestone(req, res) {
 export async function submitMilestone(req, res) {
   try {
     const { milestoneId } = req.params;
+    const { deliverableUrl } = req.body;
+
     const milestone = await milestoneModel.findById(milestoneId);
     if (!milestone) {
       return res.status(400).json({ message: "Milestone does not exist" });
     }
     if (milestone.status !== "funded") {
-      return res.status(400).json({ message: "You can only submit funded milestones only" });
+      return res.status(400).json({ message: "You can only submit funded milestones" });
     }
+    if (!deliverableUrl) {
+      return res.status(400).json({ message: "Please provide a deliverable URL" });
+    }
+
     milestone.status = "submitted";
     milestone.submittedAt = Date.now();
-    if (req.file) {
-      milestone.deliverableUrl = req.file.path;
-    }
+    milestone.deliverableUrl = deliverableUrl;
     await milestone.save();
+
     return res.status(200).json({ message: "Milestone submitted successfully", milestone });
   } catch (err) {
     return res.status(500).json({ message: "Server Error" });

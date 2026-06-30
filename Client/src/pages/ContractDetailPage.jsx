@@ -25,9 +25,12 @@ function StatusPill(props) {
 function FileLinkOrNull(props) {
   var fileUrl = props.fileUrl;
   if (!fileUrl) return null;
+  var href = fileUrl.startsWith("http://") || fileUrl.startsWith("https://")
+    ? fileUrl
+    : "https://" + fileUrl;
   return (
     <a
-      href={fileUrl}
+      href={href}
       target="_blank"
       rel="noreferrer"
       className="inline-block mt-2 text-xs text-brand-500 hover:text-brand-400 transition-colors"
@@ -89,19 +92,22 @@ function handleInvoiceDownload() {
     );
   }
 
-  function renderFileLink() {
-    if (!fileUrl) return null;
-    return (
-      <a
-        href={fileUrl}
-        target="_blank"
-        rel="noreferrer"
-        className="inline-block mt-2 text-xs text-brand-500 hover:text-brand-400 transition-colors"
-      >
-        View submitted file
-      </a>
-    );
-  }
+function renderFileLink() {
+  if (!fileUrl) return null;
+  var href = fileUrl.startsWith("http://") || fileUrl.startsWith("https://")
+    ? fileUrl
+    : "https://" + fileUrl;
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noreferrer"
+      className="inline-block mt-2 text-xs text-brand-500 hover:text-brand-400 transition-colors"
+    >
+      View submitted file
+    </a>
+  );
+}
 
   return (
     <div className="bg-card border border-line rounded-2xl p-5">

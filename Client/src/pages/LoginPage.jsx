@@ -18,7 +18,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const user = await login(form.email, form.password);
-      navigate(user.role === "admin" ? "/admin" : "/dashboard");
+      navigate(user.role === "Admin" ? "/admin" : "/dashboard");
     } catch (err) {
       setError(err.response?.data?.message || "Invalid credentials");
     } finally {

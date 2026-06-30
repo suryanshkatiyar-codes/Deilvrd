@@ -18,11 +18,34 @@ export default function MilestoneActionButton(props) {
 
   const { showToast } = useToast();
   const [isLoading, setLoading] = useState(false);
+  const [showUrlForm, setShowUrlForm] = useState(false);
+  const [deliverableUrl, setDeliverableUrl] = useState("");
 
   const config = getActionConfig(action);
   if (!config) return null;
 
   const cls = "text-xs font-medium px-3 py-1.5 rounded-lg transition-all disabled:opacity-50 " + config.cls;
+
+  function handleSubmitWork() {
+    if (!deliverableUrl.trim()) {
+      showToast("Please enter a URL", "error");
+      return;
+    }
+    setLoading(true);
+    api.post("/milestone/submit/" + milestoneId, { deliverableUrl: deliverableUrl })
+      .then(function() {
+        showToast("Work submitted successfully");
+        setShowUrlForm(false);
+        setDeliverableUrl("");
+        if (onSuccess) onSuccess();
+      })
+      .catch(function(err) {
+        const msg = err.response && err.response.data && err.response.data.message
+          ? err.response.data.message : "Submission failed";
+        showToast(msg, "error");
+      })
+      .finally(function() { setLoading(false); });
+  }
 
   function handleClick() {
     setLoading(true);
@@ -52,7 +75,7 @@ export default function MilestoneActionButton(props) {
     }
 
     if (action === "dispute") {
-      api.post("/milestone/" + config.endpoint + "/" + milestoneId)
+      api.post("/milestone/dispute/" + milestoneId)
         .then(function() {
           return api.post("/disputes/" + milestoneId);
         })
@@ -80,6 +103,44 @@ export default function MilestoneActionButton(props) {
         showToast(msg, "error");
       })
       .finally(function() { setLoading(false); });
+  }
+
+  if (action === "submit") {
+    if (!showUrlForm) {
+      return (
+        <button
+          onClick={function() { setShowUrlForm(true); }}
+          className={cls}
+        >
+          Submit Work
+        </button>
+      );
+    }
+    return (
+      <div className="flex flex-col gap-2 mt-1 w-full">
+        <input
+          value={deliverableUrl}
+          onChange={function(e) { setDeliverableUrl(e.target.value); }}
+          placeholder="Paste your work URL (Google Drive, GitHub, etc.)"
+          className="w-full bg-surface border border-line rounded-xl px-3 py-2 text-xs text-white placeholder-muted focus:outline-none focus:border-brand-500 transition-colors"
+        />
+        <div className="flex gap-2">
+          <button
+            onClick={handleSubmitWork}
+            disabled={isLoading}
+            className="bg-brand-500 hover:bg-brand-600 disabled:opacity-50 text-white text-xs font-medium px-3 py-1.5 rounded-lg transition-colors"
+          >
+            {isLoading ? "Submitting..." : "Confirm"}
+          </button>
+          <button
+            onClick={function() { setShowUrlForm(false); setDeliverableUrl(""); }}
+            className="border border-line text-muted hover:text-white text-xs px-3 py-1.5 rounded-lg transition-colors"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (

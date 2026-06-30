@@ -91,8 +91,8 @@ export default function RegisterPage() {
 
             <div>
               <label className="block text-sm text-gray-400 mb-1.5">I am a</label>
-              <div className="grid grid-cols-2 gap-3">
-                {["Freelancer", "Client"].map((r) => (
+              <div className="grid grid-cols-3 gap-3">
+                {["Freelancer", "Client", "Admin"].map((r) => (
                   <button
                     key={r}
                     type="button"
